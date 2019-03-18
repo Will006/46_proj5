@@ -327,7 +327,8 @@ std::vector<std::pair<int, int>> Digraph<VertexInfo, EdgeInfo>::edges() const
 template <typename VertexInfo, typename EdgeInfo>
 std::vector<std::pair<int, int>> Digraph<VertexInfo, EdgeInfo>::edges(int vertex) const
 {
-    if(mainMap.at(vertex)==nullptr)
+    auto it = mainMap.find(vertex);
+    if(it==mainMap.end())
     {
         throw DigraphException("Invalid Vertex");
     }
@@ -344,7 +345,8 @@ std::vector<std::pair<int, int>> Digraph<VertexInfo, EdgeInfo>::edges(int vertex
 template <typename VertexInfo, typename EdgeInfo>
 VertexInfo Digraph<VertexInfo, EdgeInfo>::vertexInfo(int vertex) const
 {
-    if(mainMap.at(vertex)==nullptr)
+    auto it = mainMap.find(vertex);
+    if(it==mainMap.end())
     {
         throw DigraphException("Invalid Vertex");
     }
@@ -356,10 +358,16 @@ VertexInfo Digraph<VertexInfo, EdgeInfo>::vertexInfo(int vertex) const
 template <typename VertexInfo, typename EdgeInfo>
 EdgeInfo Digraph<VertexInfo, EdgeInfo>::edgeInfo(int fromVertex, int toVertex) const
 {
-    if(mainMap.at(fromVertex)==nullptr | mainMap.at(toVertex)==nullptr)
+    auto it = mainMap.find(fromVertex);
+    if(it==mainMap.end())
     {
-        throw DigraphException("Invalid Edge");
-    }//add a way to check if the edge alread exhist
+        throw DigraphException("Invalid Vertex");
+    }
+    it = mainMap.find(toVertex);
+    if(it==mainMap.end())
+    {
+        throw DigraphException("Invalid Vertex");
+    }
 
     for(typename std::list<DigraphEdge<EdgeInfo>>::iterator it=mainMap.at(fromVertex)->edges.begin();
         it!=mainMap.at(fromVertex)->edges.end();++it)
@@ -385,17 +393,23 @@ void Digraph<VertexInfo, EdgeInfo>::addVertex(int vertexIn, const VertexInfo& vi
 template <typename VertexInfo, typename EdgeInfo>
 void Digraph<VertexInfo, EdgeInfo>::addEdge(int fromVertexIn, int toVertexIn, const EdgeInfo& einfoIn)
 {
-    
-    if(mainMap.at(fromVertexIn)==nullptr | mainMap.at(toVertexIn)==nullptr)
+    auto it = mainMap.find(fromVertexIn);
+    if(it==mainMap.end())
     {
-        throw DigraphException("Invalid Edge");
-    }//add a way to check if the edge alread exhist
-    else
-    {
-        DigraphEdge<EdgeInfo> newEdge{.fromVertex = fromVertexIn, .toVertex = toVertexIn, .einfo = einfoIn};
-        mainMap.at(fromVertexIn)->edges.push_front(newEdge);
-        edgeNum++;
+        throw DigraphException("Invalid Vertex");
     }
+    it = mainMap.find(toVertexIn);
+    if(it==mainMap.end())
+    {
+        throw DigraphException("Invalid Vertex");
+    }
+    
+   
+    DigraphEdge<EdgeInfo> newEdge{.fromVertex = 
+            fromVertexIn, .toVertex = toVertexIn, .einfo = einfoIn};
+    mainMap.at(fromVertexIn)->edges.push_front(newEdge);
+    edgeNum++;
+
 }
 
 
@@ -426,10 +440,16 @@ void Digraph<VertexInfo, EdgeInfo>::removeVertex(int vertex)
 template <typename VertexInfo, typename EdgeInfo>
 void Digraph<VertexInfo, EdgeInfo>::removeEdge(int fromVertex, int toVertex)
 {
-    if(mainMap.at(fromVertex)==nullptr | mainMap.at(toVertex)==nullptr)
+    auto it = mainMap.find(fromVertex);
+    if(it==mainMap.end())
     {
-        throw DigraphException("Invalid Edge");
-    }//add a way to check if the edge alread exhist
+        throw DigraphException("Invalid Vertex");
+    }
+    it = mainMap.find(toVertex);
+    if(it==mainMap.end())
+    {
+        throw DigraphException("Invalid Vertex");
+    }
     
     for(typename std::list<DigraphEdge<EdgeInfo>>::iterator it=mainMap.at(fromVertex)->edges.begin(); 
     it!=mainMap.at(fromVertex)->edges.end();++it)
@@ -461,9 +481,10 @@ int Digraph<VertexInfo, EdgeInfo>::edgeCount() const noexcept
 template <typename VertexInfo, typename EdgeInfo>
 int Digraph<VertexInfo, EdgeInfo>::edgeCount(int vertex) const
 {
-    if(mainMap.at(vertex)==nullptr)
+    auto it = mainMap.find(vertex);
+    if(it==mainMap.end())
     {
-        throw DigraphException("No matching vertex");
+        throw DigraphException("Invalid Vertex");
     }
 
     return mainMap.at(vertex)->edges.size();
@@ -548,6 +569,11 @@ std::map<int, int> Digraph<VertexInfo, EdgeInfo>::findShortestPaths(
     int startVertex,
     std::function<double(const EdgeInfo&)> edgeWeightFunc) const
 {
+    auto it = mainMap.find(startVertex);
+    if(it==mainMap.end())
+    {
+        throw DigraphException("Invalid Vertex");
+    }
     return std::map<int, int>{};
 }
 
