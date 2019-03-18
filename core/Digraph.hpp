@@ -416,6 +416,11 @@ void Digraph<VertexInfo, EdgeInfo>::addEdge(int fromVertexIn, int toVertexIn, co
 template <typename VertexInfo, typename EdgeInfo>
 void Digraph<VertexInfo, EdgeInfo>::removeVertex(int vertex)
 {
+    auto it = mainMap.find(vertex);
+    if(it==mainMap.end())
+    {
+        throw DigraphException("Invalid Vertex");
+    }
     delete mainMap.at(vertex);
     for(auto currentVertex = mainMap.begin(); currentVertex!=mainMap.end(); ++currentVertex)
     {
@@ -434,6 +439,7 @@ void Digraph<VertexInfo, EdgeInfo>::removeVertex(int vertex)
         }
 
    }
+   mainMap.erase(vertex);
 }
 
 
@@ -489,19 +495,7 @@ int Digraph<VertexInfo, EdgeInfo>::edgeCount(int vertex) const
 
     return mainMap.at(vertex)->edges.size();
 }
-/*
-template <typename VertexInfo, typename EdgeInfo>
-int Digraph<VertexInfo, EdgeInfo>::breathSearch(int vertex, std::queue<int> reachable, std::queue<int> vistedIn) const
-{
-    for(typename std::list<DiggbraphEdge<EdgeInfo>>::iterator it=mainMap.at(fromVertex)->edges.begin(); 
-    {
-        reachable.push(it->toVertex);
-    }
-    vistedIn.push(vertex);
-    breathSearch(reachable.pop(),reachable,vistedIn);
-    
-}
-*/
+
 template <typename VertexInfo, typename EdgeInfo>
 bool Digraph<VertexInfo, EdgeInfo>::isStronglyConnected() const
 {
@@ -528,7 +522,8 @@ bool Digraph<VertexInfo, EdgeInfo>::isStronglyConnected() const
             nextVertex = currentEdge->toVertex;
             bool found =false;
             //check if it's been visted
-            for(std::list<int>::iterator vistedIt = visted.begin(); vistedIt!=visted.end(); ++vistedIt)
+            for(std::list<int>::iterator vistedIt = visted.begin();
+            vistedIt!=visted.end(); ++vistedIt)
             {
                 if(*vistedIt==nextVertex)
                 {
@@ -538,7 +533,8 @@ bool Digraph<VertexInfo, EdgeInfo>::isStronglyConnected() const
             if(found==false)
             {
                 //check if it's been seen
-                for(std::list<int>::iterator reachIt = reachable.begin(); reachIt!=reachable.end(); ++reachIt)
+                for(std::list<int>::iterator reachIt = reachable.begin(); 
+                reachIt!=reachable.end(); ++reachIt)
                 {
                     if(*reachIt==nextVertex)
                     {
@@ -546,13 +542,14 @@ bool Digraph<VertexInfo, EdgeInfo>::isStronglyConnected() const
                     }
                 }
                 //if it has not been seen add it to reachable
-                if(found==false)
+                if(found==false && nextVertex!=currentVertex)
                 {
                     reachable.push_back(currentEdge->toVertex);
                 }
             }
         }
-        visted.push_back(nextVertex);
+
+        visted.push_back(currentVertex);
     }
     //if all vertexs were reachable
     if(visted.size()==vertexNum)
