@@ -27,7 +27,7 @@
 #include <utility>
 #include <vector>
 #include <utility>
-
+#include <limits>
 
 // DigraphExceptions are thrown from some of the member functions in the
 // Digraph class template, so that exception is declared here, so it
@@ -571,7 +571,76 @@ std::map<int, int> Digraph<VertexInfo, EdgeInfo>::findShortestPaths(
     {
         throw DigraphException("Invalid Vertex");
     }
-    return std::map<int, int>{};
+    //vertex,(fromVertex, weight)
+    std::map<int,std::pair<int,double>> returnMap;
+    std::vector<int> computed;
+    std::vector<int> toBeComputed = vertices();
+    
+    for(std::vector<int>::iterator it = toBeComputed.begin(); it != toBeComputed.end(); ++it)
+    {
+        //set the default values to point from itself and with a max weight
+        returnMap.insert(std::pair<int,std::pair<int,double>>
+        (*it,std::pair<int,double>(*it,std::numeric_limits<double>::max())));
+        
+        //remove the starting vertex from the tobeComputed and put it in the computed vector
+        if(*it==startVertex)
+        {
+            computed.push_back(*it);
+            toBeComputed.erase(it);
+        }
+    }
+    std::vector<std::pair<int,int>> outGoingEdges = edges(startVertex);
+    for(auto it = outGoingEdges.begin(); it!= outGoingEdges.end(); ++it)
+    {
+        returnMap.at(it->second)=std::pair<int,double>(startVertex, edgeWeightFunc(edgeInfo(it->first,it->second)));
+    }
+    int currentVertex=0;
+    while(toBeComputed.empty()==false)
+    {
+        double lowestWeight= std::numeric_limits<double>::max();
+        currentVertex =-1;
+        for(auto it = toBeComputed.begin(); it!=toBeComputed; ++it)
+        {
+            //find the vertex with the lowest weight
+            if(returnMap.at(*it).second<lowestWeight)
+            {
+                currentVertex = *it;
+                toBeComputed.erase(it);
+            }
+        }
+        //if not updated, then the rest are unreachable
+        if(currentVertex==-1)
+        {
+            break;
+        }
+
+        //update all outgoing edges
+        std::vector<std::pair<int,int>> outGoingEdges = edges(currentVertex);
+        double currentWeight=0;
+        for(auto nextEdge = outGoingEdges.begin(); nextEdge!= outGoingEdges.end(); ++nextEdge)
+        {
+            //add weight of current vertex to the weight of going to next
+            currentWeight = edgeWeightFunc(nextEdge->first,nextEdge->second)+
+                            returnMap.at(nextEdge->first).second;
+            //if less than the next vertex weight
+            if(currentWeight<returnMap.at(nextEdge->second).second)
+            {
+                returnMap.at(nextEdge->second)=
+                                    std::pair<int,double>(currentVertex,
+                                    edgeWeightFunc(edgeInfo(nextEdge->first,nextEdge->second)));
+            }
+        }
+        computed.push_back(currentVertex);
+
+    }
+    std::map<int,int> output;
+    for(auto mapIt = returnMap.begin(); mapIt != returnMap.end(); ++mapIt)
+    {
+        output.insert(std::pair<int,int>(mapIt->first,(mapInt->second)->first));
+    }
+
+
+    return output;
 }
 
 
