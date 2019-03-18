@@ -28,7 +28,7 @@
 #include <vector>
 #include <utility>
 #include <limits>
-
+//#include <iostream>
 // DigraphExceptions are thrown from some of the member functions in the
 // Digraph class template, so that exception is declared here, so it
 // will be available to any code that includes this header file.
@@ -421,7 +421,6 @@ void Digraph<VertexInfo, EdgeInfo>::removeVertex(int vertex)
     {
         throw DigraphException("Invalid Vertex");
     }
-    delete mainMap.at(vertex);
     for(auto currentVertex = mainMap.begin(); currentVertex!=mainMap.end(); ++currentVertex)
     {
         if(!currentVertex->second->edges.empty())
@@ -439,6 +438,7 @@ void Digraph<VertexInfo, EdgeInfo>::removeVertex(int vertex)
         }
 
    }
+   delete mainMap.at(vertex);
    mainMap.erase(vertex);
 }
 
@@ -587,27 +587,31 @@ std::map<int, int> Digraph<VertexInfo, EdgeInfo>::findShortestPaths(
         {
             computed.push_back(*it);
             toBeComputed.erase(it);
+            --it;
         }
     }
     std::vector<std::pair<int,int>> outGoingEdges = edges(startVertex);
-    for(auto it = outGoingEdges.begin(); it!= outGoingEdges.end(); ++it)
+    for(auto temp = outGoingEdges.begin(); temp!= outGoingEdges.end(); ++temp)
     {
-        returnMap.at(it->second)=std::pair<int,double>(startVertex, edgeWeightFunc(edgeInfo(it->first,it->second)));
+        //std::cout<<"\n\nSetting default value to:"<<(temp->second);
+        returnMap.at(temp->second)=std::pair<int,double>(startVertex, edgeWeightFunc(edgeInfo(temp->first,temp->second)));
     }
     int currentVertex=0;
     while(toBeComputed.empty()==false)
     {
         double lowestWeight= std::numeric_limits<double>::max();
         currentVertex =-1;
-        for(auto it = toBeComputed.begin(); it!=toBeComputed; ++it)
+        for(auto it = toBeComputed.begin(); it!=toBeComputed.end(); ++it)
         {
             //find the vertex with the lowest weight
             if(returnMap.at(*it).second<lowestWeight)
             {
                 currentVertex = *it;
                 toBeComputed.erase(it);
+                --it;
             }
         }
+        //std::cout<<"\n\n-----TEST----\nCurretnVertex:"<<currentVertex;
         //if not updated, then the rest are unreachable
         if(currentVertex==-1)
         {
@@ -620,11 +624,12 @@ std::map<int, int> Digraph<VertexInfo, EdgeInfo>::findShortestPaths(
         for(auto nextEdge = outGoingEdges.begin(); nextEdge!= outGoingEdges.end(); ++nextEdge)
         {
             //add weight of current vertex to the weight of going to next
-            currentWeight = edgeWeightFunc(nextEdge->first,nextEdge->second)+
+            currentWeight = edgeWeightFunc(edgeInfo(nextEdge->first,nextEdge->second))+
                             returnMap.at(nextEdge->first).second;
             //if less than the next vertex weight
             if(currentWeight<returnMap.at(nextEdge->second).second)
             {
+                //std::cout<<"\nUpdating weight of"<<(nextEdge->second)<<" from:"<<nextEdge->first; 
                 returnMap.at(nextEdge->second)=
                                     std::pair<int,double>(currentVertex,
                                     edgeWeightFunc(edgeInfo(nextEdge->first,nextEdge->second)));
@@ -636,7 +641,7 @@ std::map<int, int> Digraph<VertexInfo, EdgeInfo>::findShortestPaths(
     std::map<int,int> output;
     for(auto mapIt = returnMap.begin(); mapIt != returnMap.end(); ++mapIt)
     {
-        output.insert(std::pair<int,int>(mapIt->first,(mapInt->second)->first));
+        output.insert(std::pair<int,int>(mapIt->first,(mapIt->second).first));
     }
 
 
